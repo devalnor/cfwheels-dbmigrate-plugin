@@ -12,18 +12,20 @@
 	<cfset Request.migrationOutput = Request.migrationOutput & arguments.message & chr(13)>
 </cffunction>
 
-<cffunction name="$execute" access="private">
+<cffunction name="$execute" access="private" returntype="struct">
 	<cfargument name="sql" type="string" required="yes">
 	<cfscript>
+	var loc={};
 	// trim and remove trailing semicolon (appears to cause problems for Oracle thin client JDBC driver)
 	arguments.sql = REReplace(trim(arguments.sql),";$","","ONE");
 	if(IsDefined("Request.migrationSQLFile")) {
 		$file(action="append",file=Request.migrationSQLFile,output="#arguments.sql#;",addNewLine="yes",fixNewLine="yes");
 	}
 	</cfscript>
-	<cfquery datasource="#application.wheels.dataSourceName#" username="#application.wheels.dataSourceUserName#" password="#application.wheels.dataSourcePassword#">
+	<cfquery result="loc.result" datasource="#application.wheels.dataSourceName#" username="#application.wheels.dataSourceUserName#" password="#application.wheels.dataSourcePassword#">
 	#PreserveSingleQuotes(arguments.sql)#
 	</cfquery>
+	<cfreturn loc.result>
 </cffunction>
 
 <cffunction name="$getDBType" returntype="string" access="private" output="false">

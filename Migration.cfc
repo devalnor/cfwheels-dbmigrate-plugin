@@ -184,15 +184,15 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="execute" returntype="void" access="public" hint="executes a raw sql query">
+	<cffunction name="execute" returntype="any" access="public" hint="executes a raw sql query">
 		<cfargument name="sql" type="string" required="true">
 		<cfscript>
-		$execute(arguments.sql);
 		announce("Executed SQL: #arguments.sql#");
+		return $execute(arguments.sql);
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="addRecord" returntype="void" access="public" hint="adds a record to a table">
+	<cffunction name="addRecord" returntype="numeric" access="public" hint="adds a record to a table">
 		<cfargument name="table" type="string" required="true" hint="table name">
 		<cfscript>
 			var loc = {};
@@ -213,10 +213,14 @@
 				}
 			}
 			if(loc.columnNames != '') {
-				$execute("INSERT INTO #this.adapter.quoteTableName(LCase(arguments.table))# ( #loc.columnNames# ) VALUES ( #loc.columnValues# )");
-				announce("Added record to table #arguments.table#");
+				loc.result=$execute("INSERT INTO #this.adapter.quoteTableName(LCase(arguments.table))# ( #loc.columnNames# ) VALUES ( #loc.columnValues# )");
+				loc.generatedKey="";
+				if(isDefined('loc.result.generatedKey')) { loc.generatedKey=loc.result.generatedKey;}
+				announce("Added record to table #arguments.table# (GeneratedKey=#loc.generatedKey#)");
 			}
 		</cfscript>
+		
+		<cfreturn loc.generatedKey>
 	</cffunction>
 
 	<cffunction name="updateRecord" returntype="void" access="public" hint="updates an existing record in a table">
