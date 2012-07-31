@@ -12,6 +12,7 @@
 	<cfset variables.sqlTypes['text'] = {name='TEXT'}>
 	<cfset variables.sqlTypes['time'] = {name='DATETIME'}>
 	<cfset variables.sqlTypes['timestamp'] = {name='DATETIME'}>
+	<cfset variables.sqlTypes['bigint'] = {name='BIGINT'}>
 
 	<cffunction name="adapterName" returntype="string" access="public" hint="name of database adapter">
 		<cfreturn "MicrosoftSQLServer">

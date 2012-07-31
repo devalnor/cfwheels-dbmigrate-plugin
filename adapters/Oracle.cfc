@@ -16,6 +16,7 @@
 	<cfset variables.sqlTypes['text'] = {name='CLOB'}>
 	<cfset variables.sqlTypes['time'] = {name='DATE'}>
 	<cfset variables.sqlTypes['timestamp'] = {name='DATE'}>
+	<cfset variables.sqlTypes['bigint'] = {name='NUMBER(19, 0)'}>
 
 	<cffunction name="adapterName" returntype="string" access="public" hint="name of database adapter">
 		<cfreturn "Oracle">

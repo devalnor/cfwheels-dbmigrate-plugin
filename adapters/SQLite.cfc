@@ -12,6 +12,7 @@
 	<cfset variables.sqlTypes['text'] = {name='text'}>
 	<cfset variables.sqlTypes['time'] = {name='integer'}>
 	<cfset variables.sqlTypes['timestamp'] = {name='integer'}>
+	<cfset variables.sqlTypes['bigint'] = {name='integer'}>
 
 	<cffunction name="adapterName" returntype="string" access="public" hint="name of database adapter">
 		<cfreturn "SQLite">
