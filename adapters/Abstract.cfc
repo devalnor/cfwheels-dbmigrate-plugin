@@ -67,21 +67,27 @@
 		<cfargument name="sql" type="string" required="true" hint="column definition sql">
 		<cfargument name="options" type="struct" required="false" default="#StructNew()#" hint="column options">
 		<cfscript>
-		if(StructKeyExists(arguments.options,'type') && arguments.options.type != 'primaryKey') {
-			if(StructKeyExists(arguments.options,'default') && optionsIncludeDefault(argumentCollection=arguments.options)) {
-				if(arguments.options.default eq "NULL" || (arguments.options.default eq "" && ListFindNoCase("boolean,date,datetime,time,timestamp,decimal,float,integer",arguments.options.type))) {
-					arguments.sql = arguments.sql & " DEFAULT NULL";
-				} else if(arguments.options.type == 'boolean') {
-					arguments.sql = arguments.sql & " DEFAULT #IIf(arguments.options.default,1,0)#";
-				} else {
-					arguments.sql = arguments.sql & " DEFAULT #quote(value=arguments.options.default,options=arguments.options)#";
+			if(StructKeyExists(arguments.options,'type') && arguments.options.type != 'primaryKey') {
+				if(StructKeyExists(arguments.options,'default') && optionsIncludeDefault(argumentCollection=arguments.options)) {
+					if(arguments.options.default eq "NULL" || (arguments.options.default eq "" && ListFindNoCase("boolean,date,datetime,time,timestamp,decimal,float,integer",arguments.options.type))) {
+						arguments.sql = arguments.sql & " DEFAULT NULL";
+					} else if(arguments.options.type == 'boolean') {
+						arguments.sql = arguments.sql & " DEFAULT #IIf(arguments.options.default,1,0)#";
+					} else if(arguments.options.type == 'string' && arguments.options.default eq "") {
+						arguments.sql = arguments.sql;
+					} else {
+						arguments.sql = arguments.sql & " DEFAULT #quote(value=arguments.options.default,options=arguments.options)#";
+					}
+				}
+				if(StructKeyExists(arguments.options,'null') && !arguments.options.null) {
+					arguments.sql = arguments.sql & " NOT NULL";
 				}
 			}
-			if(StructKeyExists(arguments.options,'null') && !arguments.options.null) {
-				arguments.sql = arguments.sql & " NOT NULL";
-			}
-		}
+
 		</cfscript>
+		<cfif structKeyExists(arguments.options, "afterColumn") And Len(Trim(arguments.options.afterColumn)) GT 0>
+			<cfset arguments.sql = arguments.sql & " AFTER #arguments.options.afterColumn#">
+		</cfif>
 		<cfreturn arguments.sql>
 	</cffunction>
 	
@@ -96,6 +102,9 @@
 		<cfargument name="value" type="string" required="true" hint="value to be quoted">
 		<cfargument name="options" type="struct" required="false" default="#StructNew()#" hint="column options">
 		<cfscript>
+			if (listFindNoCase("CURRENT_TIMESTAMP", arguments.value))
+				return arguments.value;
+
 			if(StructKeyExists(arguments.options,'type') && ListFindNoCase("binary,date,datetime,time,timestamp",arguments.options.type)) {
 				arguments.value = "'#arguments.value#'";
 			}
@@ -177,7 +186,7 @@
 	<cffunction name="addColumnToTable" returntype="string" access="public" hint="generates sql to add a new column to a table">
 		<cfargument name="name" type="string" required="true" hint="table name">
 		<cfargument name="column" type="any" required="true" hint="column definition object">
-		<cfreturn "ALTER TABLE #quoteTableName(LCase(arguments.name))# ADD COLUMN #arguments.column.toSQL()#">
+		<cfreturn "ALTER TABLE #quoteTableName(LCase(arguments.name))# ADD COLUMN #arguments.column.toSQL()#" />
 	</cffunction>
 	
 	<cffunction name="changeColumnInTable" returntype="string" access="public" hint="generates sql to change an existing column in a table">
@@ -217,7 +226,33 @@
 		<cfargument name="referenceTable" type="string" required="yes" hint="referenced table name">
 		<cfargument name="column" type="string" required="yes" hint="column name">
 		<cfargument name="referenceColumn" type="string" required="yes" hint="referenced column name">
-		<cfreturn "CONSTRAINT #quoteTableName(arguments.name)# FOREIGN KEY (#quoteColumnName(arguments.column)#) REFERENCES #LCase(arguments.referenceTable)#(#quoteColumnName(arguments.referenceColumn)#)">
+		<cfargument name="onUpdate" type="string" required="false" default="">
+		<cfargument name="onDelete" type="string" required="false" default="">
+
+		<cfscript>
+			var loc = { sql = "CONSTRAINT #quoteTableName(arguments.name)# FOREIGN KEY (#quoteColumnName(arguments.column)#) REFERENCES #LCase(arguments.referenceTable)#(#quoteColumnName(arguments.referenceColumn)#)" };
+			for (loc.item in listToArray("onUpdate,onDelete"))
+				{
+					if (len(arguments[loc.item]))
+					{
+						switch (arguments[loc.item])
+						{
+							case "none":
+								loc.sql = loc.sql & " " & uCase(humanize(loc.item)) & " NO ACTION";
+								break;
+
+							case "null":
+								loc.sql = loc.sql & " " & uCase(humanize(loc.item)) & " SET NULL";
+								break;
+
+							default:
+								loc.sql = loc.sql & " " & uCase(humanize(loc.item)) & " CASCADE";
+								break;
+						}
+					}
+				}
+		</cfscript>
+		<cfreturn loc.sql>
 	</cffunction>
 	
 	<cffunction name="addIndex" returntype="string" access="public" hint="generates sql to add database index on a table column">
@@ -244,6 +279,14 @@
 		<cfargument name="table" type="string" required="true" hint="table name">
 		<cfargument name="indexName" type="string" required="false" default="" hint="index name">
 		<cfreturn "DROP INDEX #quoteTableName(arguments.indexName)#">
+	</cffunction>
+
+	<cffunction name="addRecordPrefix" returntype="string" access="public" hint="generates sql to remove a database index">
+		<cfreturn "">
+	</cffunction>
+
+	<cffunction name="addRecordSuffix" returntype="string" access="public" hint="generates sql to remove a database index">
+		<cfreturn "">
 	</cffunction>
 
 </cfcomponent>

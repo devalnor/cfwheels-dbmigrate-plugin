@@ -1,10 +1,11 @@
 <!--- we include wheels global functions for:-
 	pluralize
 	model
-	$file
 	$dbinfo
 	 --->
-<cfinclude template="../../wheels/global/functions.cfm">
+<cfif not StructKeyExists(variables, "$wddx")>
+	<cfinclude template="../../wheels/global/functions.cfm">
+</cfif>
 
 <cffunction name="announce" access="public">
 	<cfargument name="message" type="string" required="yes">
@@ -12,27 +13,23 @@
 	<cfset Request.migrationOutput = Request.migrationOutput & arguments.message & chr(13)>
 </cffunction>
 
-<cffunction name="$execute" access="private" returntype="struct">
+<cffunction name="$execute" access="private">
 	<cfargument name="sql" type="string" required="yes">
-	<cfscript>
-	var loc={};
-	// trim and remove trailing semicolon (appears to cause problems for Oracle thin client JDBC driver)
-	arguments.sql = REReplace(trim(arguments.sql),";$","","ONE");
-	if(IsDefined("Request.migrationSQLFile")) {
-		$file(action="append",file=Request.migrationSQLFile,output="#arguments.sql#;",addNewLine="yes",fixNewLine="yes");
-	}
-	</cfscript>
-	<cfquery result="loc.result" datasource="#application.wheels.dataSourceName#" username="#application.wheels.dataSourceUserName#" password="#application.wheels.dataSourcePassword#">
+	<!--- trim and remove trailing semicolon (appears to cause problems for Oracle thin client JDBC driver) --->
+	<cfset arguments.sql = REReplace(trim(arguments.sql),";$","","ONE")>
+	<cfif StructKeyExists(Request, "migrationSQLFile")>
+		<cffile action="append" file="#Request.migrationSQLFile#" output="#arguments.sql#;" addNewLine="yes" fixNewLine="yes">
+	</cfif>
+	<cfquery datasource="#application.wheels.dataSourceName#" username="#application.wheels.dataSourceUserName#" password="#application.wheels.dataSourcePassword#">
 	#PreserveSingleQuotes(arguments.sql)#
 	</cfquery>
-	<cfreturn loc.result>
 </cffunction>
 
 <cffunction name="$getDBType" returntype="string" access="private" output="false">
 	<cfscript>
 	var loc = {};
 	loc.info = $dbinfo(type="version",datasource=application.wheels.dataSourceName,username=application.wheels.dataSourceUserName,password=application.wheels.dataSourcePassword);
-	if (loc.info.driver_name Contains "SQLServer" || loc.info.driver_name Contains "Microsoft SQL Server")
+	if (loc.info.driver_name Contains "SQLServer" || loc.info.driver_name Contains "Microsoft SQL Server" || loc.info.driver_name Contains "MS SQL Server" || loc.info.database_productname Contains "Microsoft SQL Server")
 		loc.adapterName = "MicrosoftSQLServer";
 	else if (loc.info.driver_name Contains "MySQL")
 		loc.adapterName = "MySQL";

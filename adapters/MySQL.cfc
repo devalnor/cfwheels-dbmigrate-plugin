@@ -1,6 +1,7 @@
 <cfcomponent extends="Abstract">
 
 	<cfset variables.sqlTypes = {}>
+	<cfset variables.sqlTypes['biginteger'] = {name='BIGINT UNSIGNED'}>
 	<cfset variables.sqlTypes['binary'] = {name='BLOB'}>
 	<cfset variables.sqlTypes['boolean'] = {name='TINYINT',limit=1}>
 	<cfset variables.sqlTypes['date'] = {name='DATE'}>
@@ -11,9 +12,9 @@
 	<cfset variables.sqlTypes['string'] = {name='VARCHAR',limit=255}>
 	<cfset variables.sqlTypes['text'] = {name='TEXT'}>
 	<cfset variables.sqlTypes['time'] = {name='TIME'}>
-	<cfset variables.sqlTypes['timestamp'] = {name='DATETIME'}>
-	<cfset variables.sqlTypes['bigint'] = {name='BIGINT'}>
-	
+	<cfset variables.sqlTypes['timestamp'] = {name='TIMESTAMP'}>
+	<cfset variables.sqlTypes['uuid'] = {name='VARBINARY', limit=16}>
+
 	<cffunction name="adapterName" returntype="string" access="public" hint="name of database adapter">
 		<cfreturn "MySQL">
 	</cffunction>
@@ -51,7 +52,7 @@
 		<cfargument name="type" type="string" required="false" hint="column type">
 		<cfargument name="default" type="string" required="false" default="" hint="default value">
 		<cfargument name="null" type="boolean" required="false" default="true" hint="whether nulls are allowed">
-		<cfif arguments.type eq "text">
+		<cfif ListFindNoCase("text,float", arguments.type)>
 			<cfreturn false>
 		<cfelse>
 			<cfreturn true>
