@@ -74,7 +74,8 @@
 </cfif>
 
 <div class="row">
-	<form action="#CGI.script_name & '?' & CGI.query_string#" method="post">
+	<form action="#CGI.script_name#?#CGI.query_string#&requesttimeout=99999" method="post">
+
 		<fieldset>
 			<legend>Create new migration file from template</legend>
 			<cfif ArrayLen(migrations) eq 0>
