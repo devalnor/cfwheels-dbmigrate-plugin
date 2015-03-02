@@ -1,7 +1,7 @@
 <cfcomponent output="false" mixin="none" environment="design,development,maintenance">
 	
 	<cffunction name="init">
-		<cfset this.version = "1.0,1.0.1,1.0.2,1.0.3,1.0.4,1.0.5,1.1,1.1.3,1.1.4,1.1.5,1.1.6,1.1.7,1.1.8">
+		<cfset this.version = "1.0,1.0.1,1.0.2,1.0.3,1.0.4,1.0.5,1.1,1.1.3,1.1.4,1.1.5,1.1.6,1.1.7,1.1.8,1.3.3">
 		<cfreturn this>
 	</cffunction>
 	
@@ -142,7 +142,6 @@
 		</cfquery>
 	</cffunction>	
 	
-	<!--- this function copied from /wheels/global/internal.cfm  --->
 	<cffunction name="$createObjectFromRoot" returntype="any" access="public" output="false">
 		<cfargument name="path" type="string" required="true">
 		<cfargument name="fileName" type="string" required="true">
